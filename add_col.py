@@ -5,7 +5,7 @@ import csv
 
 
 def main():
-  file = "/home/orenault/Developments/column-crypt/passwd"
+  file = "/home/orenault/Developments/col-encrypt/data/passwd"
   with open(file + '.enc', 'w') as fresults, open(file) as fsource:
     reader = csv.reader(fsource, delimiter=":")
     writer = csv.writer(fresults, delimiter=":")
