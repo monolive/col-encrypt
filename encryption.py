@@ -12,13 +12,20 @@ privateKey='/home/orenault/Developments/col-encrypt/keys/private_key.pem'
 
 def parsing_options():
   parser = argparse.ArgumentParser()
-  parser.add_argument('-f', '--file', action='store', dest='file', help='file path')
-  parser.add_argument('-d', '--delimiter', action='store', dest='delimiter', help='field delimiter')
-  parser.add_argument('-c', '--column', action='append', nargs='+', type=int, dest='column', help='column to encode - can be used multiple times')
-  parser.add_argument('-k', '--key', action='store', dest='RSAkey', help='key to encode / decode column')
-  parser.add_argument('--encrypt', action='store_true', dest='encrypt', help='encrypt and hash value')
-  parser.add_argument('--decrypt', action='store_false', dest='decrypt', help='decrypt value')
+  parser.add_argument('-f', '--file', action='store', dest='file', help='file path', required=True)
+  parser.add_argument('-d', '--delimiter', action='store', dest='delimiter', help='field delimiter (default: %(default)s)', default=":" )
+  parser.add_argument('-c', '--column', action='append', nargs='+', type=int, dest='column', help='column to encode - can be used multiple times', required=True)
+  parser.add_argument('-k', '--key', action='store', dest='RSAkey', help='key to encrypt / decrypt column', required=True)
+  parser.add_argument('-o', '--operation', choices=['encrypt', 'decrypt'], dest='operation', default='encrypt', help='operation: encrypt and hash or decrypt')
+  parser.print_help()
   results = parser.parse_args()
+  # Check arg
+  if results.operation == 'encrypt':
+    print "\nData will be hashed and encrypted"
+    print "=================================\n"
+  else:
+    print "\nData will be decrypted"
+    print "======================\n"
   return results
 
 
@@ -40,7 +47,7 @@ def decrypt_value(to_decrypt, privateRSA):
 
 def main():
   arg = parsing_options()
-  with open(arg.file + '.enc', 'wb') as fresults, open(arg.file) as fsource:
+  with open(arg.file + '.out', 'wb') as fresults, open(arg.file) as fsource:
     # CSV File operations
     reader = csv.reader(fsource, delimiter=arg.delimiter)
     writer = csv.writer(fresults, delimiter=arg.delimiter)
@@ -50,37 +57,27 @@ def main():
 
     # read header and add columns
     headers = reader.next()
-    for col in columns:
-      headers.append(headers[col] + "_ENC")
-    writer.writerow(headers)
-
-    # Encryption file operations
-    writeRSA = M2Crypto.RSA.load_pub_key(publicKey)
-    readRSA = M2Crypto.RSA.load_key(privateKey)
-
-    for row in reader:      
+    if arg.operation is "encrypt":      
+      # Encryption file operations
+      writeRSA = M2Crypto.RSA.load_pub_key(arg.RSAkey)
       for col in columns:
-        hashed = hash_value(row[col])
-        encrypted = encrypt_value(row[col],writeRSA)
-#        enc_dec_value(row[col],writeRSA,readRSA) 
-        row[col] = hashed
-        row.append(encrypted)
+        headers.append(headers[col] + "_ENC")
+      writer.writerow(headers)
+      for row in reader:      
+        for col in columns:
+          hashed = hash_value(row[col])
+          encrypted = encrypt_value(row[col],writeRSA)
+          row[col] = hashed
+          row.append(encrypted)
+        writer.writerow(row)
+    else:
+      readRSA = M2Crypto.RSA.load_key(arg.RSAkey)
+      for row in reader:
+        decrypted = decrypt_value(row[7],readRSA)
+        #print decrypted
+        row[7] = decrypted
       writer.writerow(row)
-    fresults.close()
-    fsource.close()
 
-  with open(arg.file + '.enc') as fsource, open(arg.file + '.dec', 'wb') as fdecrypt:
-#   # CSV File operations
-    reader = csv.reader(fsource, delimiter=arg.delimiter)
-    writer = csv.writer(fdecrypt, delimiter=arg.delimiter)
-    next(reader)
-#   readRSA = M2Crypto.RSA.load_key(privateKey)
-    for row in reader:
-      print row[7]
-      decrypted = decrypt_value(row[7],readRSA)
-      #print decrypted
-      row[7] = decrypted
-      writer.writerow(row)
     fresults.close()
     fsource.close()
 
