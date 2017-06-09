@@ -16,5 +16,6 @@ python script to encrypt / decrypt - CSV files
 - Decrypt data
 
 `cat test| base64 --decode | openssl rsautl -decrypt -inkey private_key.pem`
+
 `toto`
 
