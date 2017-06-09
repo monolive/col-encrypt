@@ -57,7 +57,7 @@ def main():
 
     # read header and add columns
     headers = reader.next()
-    if arg.operation is "encrypt":      
+    if arg.operation == "encrypt":      
       # Encryption file operations
       writeRSA = M2Crypto.RSA.load_pub_key(arg.RSAkey)
       for col in columns:
@@ -73,10 +73,11 @@ def main():
     else:
       readRSA = M2Crypto.RSA.load_key(arg.RSAkey)
       for row in reader:
-        decrypted = decrypt_value(row[7],readRSA)
-        #print decrypted
-        row[7] = decrypted
-      writer.writerow(row)
+        for col in columns:
+          decrypted = decrypt_value(row[col],readRSA)
+          #print decrypted
+          row[col] = decrypted
+        writer.writerow(row)
 
     fresults.close()
     fsource.close()
