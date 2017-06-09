@@ -9,10 +9,10 @@ python script to encrypt / decrypt - CSV files
 `openssl rsa -in private_key.pem -out public_key.pem -outform PEM -pubout`
 
 ## Check your key 
-Encrypt data
+..*Encrypt data
 `echo toto | openssl rsautl -encrypt -inkey public_key.pem -pubin | base64 > test`
 
-Decrypt data
+..*Decrypt data
 `cat test| base64 --decode | openssl rsautl -decrypt -inkey private_key.pem`
 `toto`
 
