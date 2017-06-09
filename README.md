@@ -26,10 +26,10 @@ usage: encryption.py [-h] -f FILE [-d DELIMITER] -c COLUMN [COLUMN ...] -k RSAKE
 optional arguments:
   -h, 						--help            				show this help message and exit
   -f FILE, 					--file FILE  	  				file path
-  -d DELIMITER, 			--delimiter DELIMITER 			field delimiter (default: :)
+  -d DELIMITER,				--delimiter DELIMITER 			field delimiter (default: :)
   -c COLUMN [COLUMN ...], 	--column COLUMN [COLUMN ...] 	column to encode - can be used multiple times
   -k RSAKEY, 				--key RSAKEY					key to encrypt / decrypt column
-  -o {encrypt,decrypt}, 	--operation {encrypt,decrypt}	operation: encrypt and hash or decrypt
+  -o {encrypt,decrypt},		--operation {encrypt,decrypt}	operation: encrypt and hash or decrypt
 
 usage: encryption.py [-h] -f FILE [-d DELIMITER] -c COLUMN [COLUMN ...] -k RSAKEY [-o {encrypt,decrypt}]
 ```
