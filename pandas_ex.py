@@ -10,6 +10,9 @@ df=pd.read_csv(source,delimiter=":");#, names=["user","pwd","uid","gid","comment
 
 print len(df.columns)
 
-print df.iloc[:,:2]
+df1 = df.iloc[:,1-2]
+
+with open(dest, 'wb') as dest:
+	df1.to_csv(dest)
 
 #print toto[toto.columns[0]]
