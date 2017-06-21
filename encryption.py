@@ -65,9 +65,17 @@ def file_extension(operation):
 
 def get_key(keyfile,operation):
   if operation == 'decrypt':
-    key = M2Crypto.RSA.load_key(keyfile)
+    try:
+      key = M2Crypto.RSA.load_key(keyfile)
+    except:
+      print "Error: Wrong key? expecting private key"
+      sys.exit(0)
   else:
-    key = M2Crypto.RSA.load_pub_key(keyfile)
+    try:
+      key = M2Crypto.RSA.load_pub_key(keyfile)
+    except:
+      print "Error: Wrong key? expecting public key"
+      sys.exit(0)
   return(key)
 
 def decrypt(to_decrypt, privateRSA):
@@ -117,7 +125,6 @@ def main():
       df[columns] = cols.applymap(hash_value).values
       df=df.assign(tes=(cols.apply(encrypt, args=(key,), axis=1)).values)
       df.to_csv(fresults, sep=":", header=arg.header, index=False)
-
   fresults.closed
 
 def old_main():
