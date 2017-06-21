@@ -74,7 +74,7 @@ def decrypt(to_decrypt, privateRSA):
   try:
     PlainText = privateRSA.private_decrypt(to_decrypt.item().decode('base64'), M2Crypto.RSA.pkcs1_oaep_padding)
   except:
-    print "Error: wrong key?"
+    print "Error: wrong key? wrong column?"
     PlainText = ""
   return PlainText
 
