@@ -96,7 +96,7 @@ def main():
     for i in xrange(len(df.columns)):
       header.append( i )
     df.columns = header
-    print df.head(1)
+    
     # Flatten the list of columns
     column = list(itertools.chain.from_iterable(arg.column))
     # open RSA key
