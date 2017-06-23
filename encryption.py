@@ -79,12 +79,16 @@ def get_key(keyfile,operation):
   return(key)
 
 def decrypt(to_decrypt, privateRSA):
-  try:
-    PlainText = privateRSA.private_decrypt(to_decrypt.item().decode('base64'), M2Crypto.RSA.pkcs1_oaep_padding)
-  except:
-    print "Error: wrong key? wrong column?"
-    PlainText = ""
-  return PlainText
+  decrypted=[]
+  for value in to_decrypt:
+    try:
+
+      PlainText = privateRSA.private_decrypt(value.decode('base64'), M2Crypto.RSA.pkcs1_oaep_padding)
+      decrypted.append(PlainText)
+    except:
+      print "Error: wrong key? wrong column?"
+      PlainText = ""
+  return decrypted
 
 def encrypt(to_encrypt, publicRSA):
   encrypted=[]
