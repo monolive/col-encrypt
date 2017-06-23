@@ -16,7 +16,6 @@ def parsing_options():
   parser.add_argument('-k', '--key', action='store', dest='RSAkey', help='key to encrypt / decrypt column', required=True)
   parser.add_argument('-o', '--operation', choices=['encrypt', 'decrypt'], dest='operation', default='encrypt', help='operation: encrypt and hash or decrypt')
   parser.add_argument('--header', action='store', dest='header', type=int, help='header row (int) - do not specify if no header', default='0')
-  #parser.print_help()
   try:
     results = parser.parse_args()
   except SystemExit as err:
@@ -42,19 +41,6 @@ def parsing_options():
 def hash_value(to_hash):
   hashed = hashlib.sha256(to_hash).hexdigest()
   return hashed
-
-def encrypt_value(to_encrypt, pubRSA):
-  CipherText = pubRSA.public_encrypt(to_encrypt, M2Crypto.RSA.pkcs1_oaep_padding)
-  return CipherText.encode('base64')
-
-def decrypt_value(to_decrypt, privateRSA):
-  privateRSA = M2Crypto.RSA.load_key(arg.RSAkey)
-  try:
-    PlainText = privateRSA.private_decrypt(to_decrypt.decode('base64'), M2Crypto.RSA.pkcs1_oaep_padding)
-  except:
-    print "Error: wrong key?"
-    PlainText = ""
-  return PlainText
 
 def file_extension(operation):
   if operation == 'decrypt':
@@ -145,7 +131,7 @@ def main():
       # Write to file
       df.to_csv(fresults, sep=":", header=arg.header, index=False)
   fresults.closed
-  
+
 if __name__ == "__main__":
   main()
   
