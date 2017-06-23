@@ -87,8 +87,12 @@ def decrypt(to_decrypt, privateRSA):
   return PlainText
 
 def encrypt(to_encrypt, publicRSA):
-  CipherText = publicRSA.public_encrypt(to_encrypt.item(), M2Crypto.RSA.pkcs1_oaep_padding)
-  return CipherText.encode('base64')
+  encrypted=[]
+  #for index, value in enumerate(list(to_encrypt)):
+  for value in to_encrypt:
+    CipherText = publicRSA.public_encrypt(value, M2Crypto.RSA.pkcs1_oaep_padding)
+    encrypted.append(CipherText.encode('base64'))
+  return encrypted 
 
 def main():
   arg = parsing_options()
@@ -97,7 +101,6 @@ def main():
   # Open output file
   with open(arg.file + fext, 'wb') as fresults:
     # Load file in dataframe
-
     df=pd.read_csv(arg.file, sep=arg.delimiter, header=arg.header)
     header=[]
     for i in xrange(len(df.columns)):
@@ -105,25 +108,37 @@ def main():
     df.columns = header
     print df.head(1)
     # Flatten the list of columns
-    columns = list(itertools.chain.from_iterable(arg.column))
-    print columns
+    column = list(itertools.chain.from_iterable(arg.column))
     # open RSA key
     key = get_key(arg.RSAkey,arg.operation)
 
     # Extract columns which need to be hashed / encrypted
-    cols = df.iloc[:,columns]
+    cols = df.iloc[:,column]
 
     if arg.operation == 'decrypt':
       # Do not forget the comma behind the privateRSA
-      # the correct python grammer for a singleton tuple is (1,) not (1), which is just an
-      # expr wth the value 1. 
-      df[columns]=cols.apply(decrypt, args=(key,), axis=1)
+      # the correct python grammer for a singleton tuple is (1,) not (1), 
+      # which is just an expr wth the value 1. 
+      df[column]=cols.apply(decrypt, args=(key,), axis=1)
       df.to_csv(fresults, sep=":", header=arg.header, index=False)
     else:
-      #for col in columns:
-      #  df[col] = cols.applymap(hash_value).values
-      df[columns] = cols.applymap(hash_value).values
-      df=df.assign(tes=(cols.apply(encrypt, args=(key,), axis=1)).values)
+      # Encrypt then hash - as otherwise we encrypt the hash value
+      # Call function encrypt w/ RSAkey - Axis=1 for row
+      encrypted = df[column].apply(encrypt, args=(key,), axis=1)
+
+      # Rename header to not clash when merging df + encrypted data frame
+      new_column=[]
+      for i in column:
+        new_column.append(str(i) + '_enc')
+      encrypted.columns = new_column
+      
+      # Concatenate both dataframe
+      df = pd.concat([df, encrypted], axis=1)
+
+      # Generate a hash
+      df[column] = df[column].applymap(hash_value).values
+
+      # Write to file
       df.to_csv(fresults, sep=":", header=arg.header, index=False)
   fresults.closed
 
