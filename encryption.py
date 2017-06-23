@@ -145,42 +145,7 @@ def main():
       # Write to file
       df.to_csv(fresults, sep=":", header=arg.header, index=False)
   fresults.closed
-
-def old_main():
-    # CSV File operations
-    reader = csv.reader(fsource, delimiter=arg.delimiter)
-    writer = csv.writer(fresults, delimiter=arg.delimiter)
-
-    # Flatten list of list into a single list
-    columns = list(itertools.chain.from_iterable(arg.column))
-
-    # read header and add columns
-    headers = reader.next()
-    if arg.operation == "encrypt":      
-      # Encryption file operations
-      writeRSA = M2Crypto.RSA.load_pub_key(arg.RSAkey)
-      for col in columns:
-        headers.append(headers[col] + "_ENC")
-      writer.writerow(headers)
-      for row in reader:      
-        for col in columns:
-          hashed = hash_value(row[col])
-          encrypted = encrypt_value(row[col],writeRSA)
-          row[col] = hashed
-          row.append(encrypted)
-        writer.writerow(row)
-    else:
-      readRSA = M2Crypto.RSA.load_key(arg.RSAkey)
-      for row in reader:
-        for col in columns:
-          decrypted = decrypt_value(row[col],readRSA)
-          #print decrypted
-          row[col] = decrypted
-        writer.writerow(row)
-
-    fresults.close()
-    fsource.close()
-
+  
 if __name__ == "__main__":
   main()
   
