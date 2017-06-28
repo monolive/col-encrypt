@@ -86,18 +86,6 @@ def encrypt(to_encrypt, publicRSA):
     encrypted.append(CipherText.encode('base64'))
   return encrypted
 
-def header(row,name):
-  # skip all rows before header
-  #header=[]
-  #for i in xrange(len(df.columns)):
-  #  header.append( i )
-  #df.columns = header
-  print name
-  return name
-
-
-
-
 def main():
   arg = parsing_options()
   fext = file_extension(arg.operation)
@@ -106,9 +94,6 @@ def main():
   with open(arg.file + fext, 'wb') as fresults:
     # Load file in dataframe
     df=pd.read_csv(arg.file, sep=arg.delimiter, header=arg.header)
-    # Check if arg.header is not None
-    
-    df.columns=header(arg.header,df.columns)
     
     # Flatten the list of columns
     column = list(itertools.chain.from_iterable(arg.column))
