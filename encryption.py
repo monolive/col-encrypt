@@ -39,7 +39,10 @@ def parsing_options():
 
 
 def hash_value(to_hash):
-  hashed = hashlib.sha256(to_hash).hexdigest()
+  hashed = []
+  for value in to_hash:
+    result = hashlib.sha256(value).hexdigest()
+    hashed.append(result)
   return hashed
 
 def file_extension(operation):
@@ -68,7 +71,6 @@ def decrypt(to_decrypt, privateRSA):
   decrypted=[]
   for value in to_decrypt:
     try:
-
       PlainText = privateRSA.private_decrypt(value.decode('base64'), M2Crypto.RSA.pkcs1_oaep_padding)
       decrypted.append(PlainText)
     except:
@@ -82,7 +84,19 @@ def encrypt(to_encrypt, publicRSA):
   for value in to_encrypt:
     CipherText = publicRSA.public_encrypt(value, M2Crypto.RSA.pkcs1_oaep_padding)
     encrypted.append(CipherText.encode('base64'))
-  return encrypted 
+  return encrypted
+
+def header(row,name):
+  # skip all rows before header
+  #header=[]
+  #for i in xrange(len(df.columns)):
+  #  header.append( i )
+  #df.columns = header
+  print name
+  return name
+
+
+
 
 def main():
   arg = parsing_options()
@@ -92,10 +106,9 @@ def main():
   with open(arg.file + fext, 'wb') as fresults:
     # Load file in dataframe
     df=pd.read_csv(arg.file, sep=arg.delimiter, header=arg.header)
-    header=[]
-    for i in xrange(len(df.columns)):
-      header.append( i )
-    df.columns = header
+    # Check if arg.header is not None
+    
+    df.columns=header(arg.header,df.columns)
     
     # Flatten the list of columns
     column = list(itertools.chain.from_iterable(arg.column))
@@ -110,26 +123,26 @@ def main():
       # the correct python grammer for a singleton tuple is (1,) not (1), 
       # which is just an expr wth the value 1. 
       df[column]=cols.apply(decrypt, args=(key,), axis=1)
-      df.to_csv(fresults, sep=":", header=arg.header, index=False)
+      df.to_csv(fresults, sep=":", header=True, index=False)
     else:
       # Encrypt then hash - as otherwise we encrypt the hash value
       # Call function encrypt w/ RSAkey - Axis=1 for row
-      encrypted = df[column].apply(encrypt, args=(key,), axis=1)
+      encrypted = df[column].apply(encrypt, args=(key,))#, axis=1)
 
       # Rename header to not clash when merging df + encrypted data frame
       new_column=[]
-      for i in column:
-        new_column.append(str(i) + '_enc')
+      for i in cols.columns:
+        new_column.append(str(i) + '_ENC')
       encrypted.columns = new_column
       
       # Concatenate both dataframe
       df = pd.concat([df, encrypted], axis=1)
 
       # Generate a hash
-      df[column] = df[column].applymap(hash_value).values
-
+      df[column] = df[column].apply(hash_value).values
+      
       # Write to file
-      df.to_csv(fresults, sep=":", header=arg.header, index=False)
+      df.to_csv(fresults, sep=":", header=True, index=False)
   fresults.closed
 
 if __name__ == "__main__":
