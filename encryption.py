@@ -82,7 +82,7 @@ def encrypt(to_encrypt, publicRSA):
   encrypted=[]
   #for index, value in enumerate(list(to_encrypt)):
   for value in to_encrypt:
-    CipherText = publicRSA.public_encrypt(value, M2Crypto.RSA.pkcs1_oaep_padding)
+    CipherText = publicRSA.public_encrypt(str(value), M2Crypto.RSA.pkcs1_oaep_padding)
     encrypted.append(CipherText.encode('base64'))
   return encrypted
 
@@ -102,12 +102,13 @@ def main():
 
     # Extract columns which need to be hashed / encrypted
     cols = df.iloc[:,column]
+    colName = df[column].columns
 
     if arg.operation == 'decrypt':
       # Do not forget the comma behind the privateRSA
       # the correct python grammer for a singleton tuple is (1,) not (1), 
-      # which is just an expr wth the value 1. 
-      df[column]=cols.apply(decrypt, args=(key,), axis=1)
+      # which is just an expr wth the value 1.
+      df[colName]=df[column].apply(decrypt, args=(key,), axis=1)
       df.to_csv(fresults, sep=":", header=True, index=False)
     else:
       # Encrypt then hash - as otherwise we encrypt the hash value
@@ -116,7 +117,8 @@ def main():
 
       # Rename header to not clash when merging df + encrypted data frame
       new_column=[]
-      for i in cols.columns:
+      #for i in cols.columns:
+      for i in colName:
         new_column.append(str(i) + '_ENC')
       encrypted.columns = new_column
       
