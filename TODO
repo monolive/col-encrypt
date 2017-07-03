@@ -1,0 +1,6 @@
+# TODO
+ - Read / write file on HDFS
+ - Kerberos support
+ - use key from Ranger KMS service
+
+

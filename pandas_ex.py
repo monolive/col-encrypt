@@ -30,7 +30,7 @@ def hash_value(to_hash):
   return hashed
 
 def main():
-	source='/home/orenault/Developments/col-encrypt/data/passwd.out'
+	source='/home/orenault/Developments/col-encrypt/data/passwd.header.encrypted'
 	dest='/home/orenault/Developments/col-encrypt/data/pandas'
 	col=[7]
 	privateRSA = M2Crypto.RSA.load_key(privateRSAkey)
