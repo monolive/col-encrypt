@@ -24,6 +24,7 @@ def parsing_options():
   parser.add_argument('-k', '--key', action='store', dest='RSAkey', help='key to encrypt / decrypt column', required=True)
   parser.add_argument('-o', '--operation', choices=['encrypt', 'decrypt'], dest='operation', default='encrypt', help='operation: encrypt and hash or decrypt')
   parser.add_argument('--header', action='store', dest='header', type=int, help='header row (int) - do not specify if no header', default='0')
+  parser.add_argument('--overwrite', action='store_true', dest='overwrite', help='overwrite output file', default='False')  
   try:
     results = parser.parse_args()
   except SystemExit as err:
@@ -45,3 +46,102 @@ def parsing_options():
     print "======================\n"
   return results
 
+def hash_value(to_hash):
+  hashed = []
+  for value in to_hash:
+    result = hashlib.sha256(value).hexdigest()
+    hashed.append(result)
+  return hashed
+
+def file_extension(operation):
+  if operation == 'decrypt':
+    file_ext = ".decrypted"
+  else:
+    file_ext = ".encrypted"
+  return(file_ext)
+
+def get_key(keyfile,operation):
+  if operation == 'decrypt':
+    try:
+      key = M2Crypto.RSA.load_key(keyfile)
+    except:
+      print "Error: Wrong key? expecting private key"
+      sys.exit(0)
+  else:
+    try:
+      key = M2Crypto.RSA.load_pub_key(keyfile)
+    except:
+      print "Error: Wrong key? expecting public key"
+      sys.exit(0)
+  return(key)
+
+def decrypt(to_decrypt, privateRSA):
+  decrypted=[]
+  for value in to_decrypt:
+    try:
+      PlainText = privateRSA.private_decrypt(value.decode('base64'), M2Crypto.RSA.pkcs1_oaep_padding)
+      decrypted.append(PlainText)
+    except:
+      print "Error: wrong key? wrong column?"
+      PlainText = ""
+  return decrypted
+
+def encrypt(to_encrypt, publicRSA):
+  encrypted=[]
+  #for index, value in enumerate(list(to_encrypt)):
+  for value in to_encrypt:
+    CipherText = publicRSA.public_encrypt(str(value), M2Crypto.RSA.pkcs1_oaep_padding)
+    encrypted.append(CipherText.encode('base64'))
+  return encrypted
+
+def main():
+  arg = parsing_options()
+  fext = file_extension(arg.operation)
+  client = Config().get_client()
+  with client.read(arg.file) as datainput:
+    # Load file in dataframe
+    df=pd.read_csv(datainput, sep=arg.delimiter, header=arg.header)
+  datainput.closed
+
+  # Open output file
+  with client.write(arg.file + fext, overwrite=arg.overwrite) as fresults:
+    
+    # Flatten the list of columns
+    column = list(itertools.chain.from_iterable(arg.column))
+    # open RSA key
+    key = get_key(arg.RSAkey,arg.operation)
+
+    # Extract columns which need to be hashed / encrypted
+    cols = df.iloc[:,column]
+    colName = df[column].columns
+
+    if arg.operation == 'decrypt':
+      # Do not forget the comma behind the privateRSA
+      # the correct python grammer for a singleton tuple is (1,) not (1), 
+      # which is just an expr wth the value 1.
+      df[colName]=df[column].apply(decrypt, args=(key,), axis=1)
+      df.to_csv(fresults, sep=":", header=True, index=False)
+    else:
+      # Encrypt then hash - as otherwise we encrypt the hash value
+      # Call function encrypt w/ RSAkey - Axis=1 for row
+      encrypted = df[column].apply(encrypt, args=(key,))#, axis=1)
+
+      # Rename header to not clash when merging df + encrypted data frame
+      new_column=[]
+      #for i in cols.columns:
+      for i in colName:
+        new_column.append(str(i) + '_ENC')
+      encrypted.columns = new_column
+      
+      # Concatenate both dataframe
+      df = pd.concat([df, encrypted], axis=1)
+
+      # Generate a hash
+      df[column] = df[column].apply(hash_value).values
+      
+      # Write to file
+      df.to_csv(fresults, sep=":", header=True, index=False)
+
+if __name__ == "__main__":
+  main()
+  
