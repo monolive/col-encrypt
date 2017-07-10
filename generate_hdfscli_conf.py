@@ -37,7 +37,8 @@ def main():
 
   with open(hdfscliConf, 'w') as hdfscli:
     hdfscli.write('[global]\n')
-    hdfscli.write('default.alias = hadoop\n\n')
+    hdfscli.write('default.alias = hadoop\n')
+    hdfscli.write('autoload.modules = hdfs.ext.kerberos\n\n')
     hdfscli.write('[hadoop.alias]\n')
     hdfscli.write('url = http://' + namenode + '\n')
     hdfscli.write('user = ' + os.getlogin() + '\n')
@@ -45,7 +46,7 @@ def main():
 
     
   if security == 'kerberos':
-    print Youpi
+    hdfscli.write('client = KerberosClient')
 
 if __name__ == "__main__":
   main()
