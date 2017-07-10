@@ -10,8 +10,6 @@ import pandas as pd
 
 hdfscliconf = '/home/orenault/Developments/col-encrypt/conf/hdfscli.cfg'
 
-def generate_conf():
-  print toto
 
 def main():
   client = Config(path=hdfscliconf).get_client()
