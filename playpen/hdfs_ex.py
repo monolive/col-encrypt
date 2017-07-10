@@ -17,7 +17,6 @@ def main():
     #print input.read()
     df=pd.read_csv(input, sep=':', header=None)
     cols = df.iloc[:,0]
-
     client.write('/user/orenault/data.avro', cols.to_csv(sep=":", header=True, index=False), overwrite=True)
 
 if __name__ == "__main__":
