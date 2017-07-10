@@ -18,6 +18,9 @@ def main():
   key = RSA.generate(1024, random_generator)
   pub_key = key.publickey()
   with open(arg.file + 'pub', 'w') as pubkey, open(arg.file + 'private', 'w') as prikey:
+    hdfscli.write('[global]')
+    hdfscli.write('default.alias = hadoop')
+    hdfscli.write('[hadoop.alias]')
     prikey.write(key.exportKey().decode())
     pubkey.write(pub_key.exportKey().decode())
 

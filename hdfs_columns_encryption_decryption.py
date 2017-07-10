@@ -1,13 +1,20 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-import base64
-import M2Crypto
-import argparse
-import hashlib
-import pandas as pd
 import itertools
 import sys
+import argparse
+# Read / write HDFS
+from hdfs import Config
+from hdfs.ext.kerberos import KerberosClient
+#Encoding
+import base64
+# RSA
+import M2Crypto
+# Hashing algo
+import hashlib
+# Pandas
+import pandas as pd
 
 def parsing_options():
   parser = argparse.ArgumentParser()
@@ -17,6 +24,7 @@ def parsing_options():
   parser.add_argument('-k', '--key', action='store', dest='RSAkey', help='key to encrypt / decrypt column', required=True)
   parser.add_argument('-o', '--operation', choices=['encrypt', 'decrypt'], dest='operation', default='encrypt', help='operation: encrypt and hash or decrypt')
   parser.add_argument('--header', action='store', dest='header', type=int, help='header row (int) - do not specify if no header', default='0')
+  parser.add_argument('--overwrite', action='store_true', dest='overwrite', help='overwrite output file', default='False')  
   try:
     results = parser.parse_args()
   except SystemExit as err:
@@ -37,7 +45,6 @@ def parsing_options():
     print "\nData will be decrypted"
     print "======================\n"
   return results
-
 
 def hash_value(to_hash):
   hashed = []
@@ -90,11 +97,14 @@ def encrypt(to_encrypt, publicRSA):
 def main():
   arg = parsing_options()
   fext = file_extension(arg.operation)
+  client = Config().get_client()
+  with client.read(arg.file) as datainput:
+    # Load file in dataframe
+    df=pd.read_csv(datainput, sep=arg.delimiter, header=arg.header)
+  datainput.closed
 
   # Open output file
-  with open(arg.file + fext, 'wb') as fresults:
-    # Load file in dataframe
-    df=pd.read_csv(arg.file, sep=arg.delimiter, header=arg.header)
+  with client.write(arg.file + fext, overwrite=arg.overwrite) as fresults:
     
     # Flatten the list of columns
     column = list(itertools.chain.from_iterable(arg.column))
@@ -131,7 +141,6 @@ def main():
       
       # Write to file
       df.to_csv(fresults, sep=":", header=True, index=False)
-  fresults.closed
 
 if __name__ == "__main__":
   main()

@@ -37,3 +37,11 @@ optional arguments:
                         operation: encrypt and hash or decrypt
   --header HEADER       header row (int) - do not specify if no header
 ```
+
+# Requirements
+the following python modules are required
+ - hdfscli
+ - requests-kerberos
+ - pandas
+
+
