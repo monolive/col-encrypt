@@ -43,5 +43,7 @@ the following python modules are required
  - hdfscli
  - requests-kerberos
  - pandas
+ - pykerberos
+ - M2Crypto
 
 
