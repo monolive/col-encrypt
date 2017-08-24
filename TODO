@@ -1,6 +1,5 @@
 # TODO
- - Read / write file on HDFS
  - Kerberos support
- - use key from Ranger KMS service
+ - use key from Ranger KMS service -> doesn't seem to be doable. 
 
 
