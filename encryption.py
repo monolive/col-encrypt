@@ -95,7 +95,6 @@ def main():
   with open(arg.file + fext, 'wb') as fresults:
     # Load file in dataframe
     df=pd.read_csv(arg.file, sep=arg.delimiter, header=arg.header)
-    
     # Flatten the list of columns
     column = list(itertools.chain.from_iterable(arg.column))
     # open RSA key
@@ -103,18 +102,17 @@ def main():
 
     # Extract columns which need to be hashed / encrypted
     cols = df.iloc[:,column]
-    colName = df[column].columns
-
+    colName = cols.columns
     if arg.operation == 'decrypt':
       # Do not forget the comma behind the privateRSA
       # the correct python grammer for a singleton tuple is (1,) not (1), 
       # which is just an expr wth the value 1.
-      df[colName]=df[column].apply(decrypt, args=(key,), axis=1)
+      df[colName]=df[colName].apply(decrypt, args=(key,), axis=1)
       df.to_csv(fresults, sep=":", header=True, index=False)
     else:
       # Encrypt then hash - as otherwise we encrypt the hash value
       # Call function encrypt w/ RSAkey - Axis=1 for row
-      encrypted = df[column].apply(encrypt, args=(key,))#, axis=1)
+      encrypted = df[colName].apply(encrypt, args=(key,))#, axis=1)
 
       # Rename header to not clash when merging df + encrypted data frame
       new_column=[]
@@ -127,7 +125,7 @@ def main():
       df = pd.concat([df, encrypted], axis=1)
 
       # Generate a hash
-      df[column] = df[column].apply(hash_value).values
+      df[colName] = df[colName].apply(hash_value).values
       
       # Write to file
       df.to_csv(fresults, sep=":", header=True, index=False)

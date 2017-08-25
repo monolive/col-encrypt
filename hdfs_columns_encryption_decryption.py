@@ -18,11 +18,12 @@ import pandas as pd
 
 def parsing_options():
   parser = argparse.ArgumentParser()
-  parser.add_argument('-f', '--file', action='store', dest='file', help='file path', required=True)
+  parser.add_argument('-i', '--input', action='store', dest='input', help='input file path', required=True)
+  parser.add_argument('-o', '--output', action='store', dest='output', help='output file path - default is <input file name>.[encrypted | decrypted]')
   parser.add_argument('-d', '--delimiter', action='store', dest='delimiter', help='field delimiter (default: %(default)s)', default=":" )
   parser.add_argument('-c', '--column', action='append', nargs='+', type=int, dest='column', help='column to encode - can be used multiple times', required=True)
   parser.add_argument('-k', '--key', action='store', dest='RSAkey', help='key to encrypt / decrypt column', required=True)
-  parser.add_argument('-o', '--operation', choices=['encrypt', 'decrypt'], dest='operation', default='encrypt', help='operation: encrypt and hash or decrypt')
+  parser.add_argument('--operation', choices=['encrypt', 'decrypt'], dest='operation', default='encrypt', help='operation: encrypt and hash or decrypt')
   parser.add_argument('--header', action='store', dest='header', type=int, help='header row (int) - do not specify if no header', default='0')
   parser.add_argument('--overwrite', action='store_true', dest='overwrite', help='overwrite output file', default='False')  
   try:
@@ -36,6 +37,9 @@ def parsing_options():
     results.header = None
   else:
     results.header = results.header - 1
+
+  if results.output is None:
+    results.output = output_file_name(results.input, results.operation)
 
   # Check arg
   if results.operation == 'encrypt':
@@ -53,12 +57,12 @@ def hash_value(to_hash):
     hashed.append(result)
   return hashed
 
-def file_extension(operation):
+def output_file_name(inputFile, operation):
   if operation == 'decrypt':
-    file_ext = ".decrypted"
+    outputFile = inputFile + ".decrypted"
   else:
-    file_ext = ".encrypted"
-  return(file_ext)
+    outputFile = inputFile + ".encrypted"
+  return(outputFile)
 
 def get_key(keyfile,operation):
   if operation == 'decrypt':
@@ -96,15 +100,14 @@ def encrypt(to_encrypt, publicRSA):
 
 def main():
   arg = parsing_options()
-  fext = file_extension(arg.operation)
   client = Config().get_client()
-  with client.read(arg.file) as datainput:
+  with client.read(arg.input) as inputFile:
     # Load file in dataframe
-    df=pd.read_csv(datainput, sep=arg.delimiter, header=arg.header)
-  datainput.closed
+    df=pd.read_csv(inputFile, sep=arg.delimiter, header=arg.header)
+  inputFile.closed
 
   # Open output file
-  with client.write(arg.file + fext, overwrite=arg.overwrite) as fresults:
+  with client.write(arg.output, overwrite=arg.overwrite) as outputFile:
     
     # Flatten the list of columns
     column = list(itertools.chain.from_iterable(arg.column))
@@ -113,18 +116,18 @@ def main():
 
     # Extract columns which need to be hashed / encrypted
     cols = df.iloc[:,column]
-    colName = df[column].columns
+    colName = cols.columns
 
     if arg.operation == 'decrypt':
       # Do not forget the comma behind the privateRSA
       # the correct python grammer for a singleton tuple is (1,) not (1), 
       # which is just an expr wth the value 1.
-      df[colName]=df[column].apply(decrypt, args=(key,), axis=1)
-      df.to_csv(fresults, sep=":", header=True, index=False)
+      df[colName]=df[colName].apply(decrypt, args=(key,), axis=1)
+      df.to_csv(outputFile, sep=":", header=True, index=False)
     else:
       # Encrypt then hash - as otherwise we encrypt the hash value
       # Call function encrypt w/ RSAkey - Axis=1 for row
-      encrypted = df[column].apply(encrypt, args=(key,))#, axis=1)
+      encrypted = df[colName].apply(encrypt, args=(key,))#, axis=1)
 
       # Rename header to not clash when merging df + encrypted data frame
       new_column=[]
@@ -137,10 +140,10 @@ def main():
       df = pd.concat([df, encrypted], axis=1)
 
       # Generate a hash
-      df[column] = df[column].apply(hash_value).values
+      df[colName] = df[colName].apply(hash_value).values
       
       # Write to file
-      df.to_csv(fresults, sep=":", header=True, index=False)
+      df.to_csv(outputFile, sep=":", header=True, index=False)
 
 if __name__ == "__main__":
   main()
