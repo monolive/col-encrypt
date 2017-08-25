@@ -1,0 +1,7 @@
+[global]
+default.alias = hadoop
+autoload.modules = hdfs.ext.kerberos
+
+[hadoop.alias]
+url = http://sandbox.hortonworks.com:50070
+client = KerberosClient
