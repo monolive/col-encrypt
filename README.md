@@ -48,18 +48,15 @@ the following python modules are required
 
 Create /home/<username>/.hdfscli.cfg
 
+```
 [global]
-
 default.alias = prod
-
 autoload.modules = hdfs.ext.kerberos
 
 [prod.alias]
-
 url = http://<namenode.fqdn>:50070
 
 # if kerberos don't set user
-
 # user = renaulto
-
 client = KerberosClient
+```
