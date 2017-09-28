@@ -1,0 +1,13 @@
+[Azure]
+AZURE_TENANT_ID = 
+AZURE_CLIENT_ID = 
+AZURE_CLIENT_SECRET = 
+
+[AzureKeyVault]
+KEY_VAULT = https://<vaultname>.vault.azure.net
+KEY_NAME = <keyname>
+
+[AzureBlob]
+ACCOUNT_NAME = 
+ACCOUNT_KEY = 
+CONTAINER_NAME = 
