@@ -44,7 +44,7 @@ def parsing_options():
   parser.add_argument('-o', '--output', action='store', dest='output', help='output file path - default is <input file name>.[encrypted | decrypted]')
   parser.add_argument('-d', '--delimiter', action='store', dest='delimiter', help='field delimiter (default: %(default)s) - \'-\' is forbidden', default="#" )
   parser.add_argument('-c', '--column', action='append', nargs='+', dest='column', help='column name to encode - can be used multiple times', required=True)
-  parser.add_argument('--header', action='store', dest='header', type=int, help='header row (int) - do not specify if no header', default='1')
+  parser.add_argument('--header', action='store', dest='header', type=int, help='header row (int) (default: %(default)s) - set to 0 if no header', default='1')
   parser.add_argument('--overwrite', action='store_true', dest='overwrite', help='overwrite output file', default='False')  
   parser.add_argument('--operation', choices=['encrypt', 'decrypt'], dest='operation', required=True, help='operation: encrypt and hash or decrypt')
   
